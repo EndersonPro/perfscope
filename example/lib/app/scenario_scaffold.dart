@@ -46,6 +46,13 @@ final class ScenarioScaffold extends StatelessWidget {
 
   /// Action row plus results area: buttons that trigger real API calls and
   /// the widgets rendering what PerfScope captured.
+  ///
+  /// LAYOUT CONTRACT: [child] is placed as a leaf of this scaffold's
+  /// scrollable ([ListView]) and therefore receives UNBOUNDED height. It
+  /// must size itself intrinsically or wrap any embedded viewport
+  /// (ListView/GridView) in an explicit-height box (e.g. `SizedBox`) —
+  /// `Expanded`/`Flexible` crash here, and unbounded inner viewports
+  /// produce `Infinity or NaN toInt` layout exceptions on device.
   final Widget child;
 
   @override

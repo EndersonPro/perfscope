@@ -56,6 +56,8 @@ ListView.builder(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
+          // Expanded on the TEXT only: the button keeps its intrinsic
+          // width while long counters wrap instead of overflowing.
           Row(
             children: <Widget>[
               FilledButton.tonal(
@@ -68,11 +70,18 @@ ListView.builder(
                 ),
               ),
               const SizedBox(width: 12),
-              Text('Frame anomalies so far: $_frameAnomalyCount'),
+              Expanded(
+                child: Text('Frame anomalies so far: $_frameAnomalyCount'),
+              ),
             ],
           ),
           const SizedBox(height: 8),
-          Expanded(
+          // Fixed-height inner viewport: this child is a leaf of the
+          // scaffold's ListView (unbounded height), so the scrollable MUST
+          // be given an explicit extent — Expanded would crash and an
+          // unbounded ListView inside a list item produces NaN layouts.
+          SizedBox(
+            height: 420,
             child: ListView.builder(
               itemCount: 500,
               itemBuilder: (BuildContext context, int index) => _expensiveTiles

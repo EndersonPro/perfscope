@@ -84,7 +84,11 @@ DecoratedBox(
           if (_lastAnomalyLine != null)
             Text(_lastAnomalyLine!, style: const TextStyle(fontSize: 12)),
           const SizedBox(height: 8),
-          Expanded(child: _buildGrid()),
+          // Fixed-height inner viewport: this child is a leaf of the
+          // scaffold's ListView (unbounded height), so the grid MUST get an
+          // explicit extent — Expanded would crash and an unbounded grid
+          // inside a list item produces NaN layouts (Infinity toInt).
+          SizedBox(height: 420, child: _buildGrid()),
         ],
       ),
     );

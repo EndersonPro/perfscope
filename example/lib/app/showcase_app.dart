@@ -25,12 +25,16 @@ void runShowcaseApp({List<NavigatorObserver>? observers}) {
 /// that scenario's flow rather than a standalone entry.
 final class ShowcaseApp extends StatelessWidget {
   /// Creates the app shell. Pass [observers] only from instrumented
-  /// (profile) entry points.
-  const ShowcaseApp({super.key, this.observers});
+  /// (profile) entry points. [initialRoute] overrides the start route —
+  /// used by tests to deep-link straight into one scenario screen.
+  const ShowcaseApp({super.key, this.observers, this.initialRoute});
 
   /// Navigator observers forwarded to [MaterialApp]; typically exactly one
   /// [PerfScopeNavigatorObserver]-shaped observer in profile runs.
   final List<NavigatorObserver>? observers;
+
+  /// Route the app opens with; defaults to [routeHome].
+  final String? initialRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +42,7 @@ final class ShowcaseApp extends StatelessWidget {
       title: 'PerfScope Showcase',
       theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
       navigatorObservers: observers ?? const <NavigatorObserver>[],
-      initialRoute: routeHome,
+      initialRoute: initialRoute ?? routeHome,
       routes: <String, WidgetBuilder>{
         routeHome: (_) => const DemoHomeScreen(),
         routeSmoothNavigationDetail: (_) =>
