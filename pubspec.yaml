@@ -4,6 +4,7 @@ description: >
   anomalies, track screens and interactions, record sessions,
   compare regressions, and generate AI-ready performance reports.
 version: 0.1.0
+repository: https://github.com/EndersonPro/perfscope
 environment:
   sdk: ^3.5.0
   flutter: ">=3.24.0"
