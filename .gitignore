@@ -1,0 +1,22 @@
+# Dart / Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+coverage/
+doc/api/
+pubspec.lock.bak
+
+# Local tooling (personal, not part of the package)
+.atl/
+.commandcode/
+.codegraph/
+.crossnote/
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# Misc
+*.log

@@ -1,41 +1,44 @@
 # PerfScope
 
-**Local performance observability for Flutter.**
+**Observabilidad de rendimiento local para Flutter.**
 
-- No cloud.
-- No backend.
-- No DevTools dependency.
+- Sin nube.
+- Sin backend.
+- Sin dependencia de DevTools.
 
-PerfScope detects frame anomalies, tracks screens and interactions, records
-sessions, compares regressions against baselines, and generates AI-ready
-performance reports — entirely on-device and in-process.
+PerfScope detecta anomalías de frames, rastrea pantallas e interacciones,
+registra sesiones, compara regresiones contra líneas base y genera informes de
+rendimiento listos para IA — todo en el dispositivo y dentro del proceso.
 
-## Why PerfScope
+## Por qué PerfScope
 
-DevTools answers "what happened in THIS tethered session?". PerfScope answers
-"how does my app behave during REAL usage, on real devices, over time?" —
-without a desktop connection:
+DevTools responde "¿qué pasó en ESTA sesión conectada?". PerfScope responde
+"¿cómo se comporta mi app durante el uso REAL, en dispositivos reales, a lo
+largo del tiempo?" — sin conexión a un escritorio:
 
-* **Always-on frame monitoring** via `SchedulerBinding.addTimingsCallback`,
-  classified into severity tiers with a probable-bottleneck heuristic.
-* **Sessions** you control: auto-started, named, stopped, compared.
-* **Shareable artifacts**: deterministic JSON (schema v1), formatted text
-  reports, before/after comparison tables.
-* **AI-ready output**: a token-optimized context block you can paste straight
-  into an LLM conversation to debug a jank regression.
+* **Monitoreo de frames siempre activo** mediante
+  `SchedulerBinding.addTimingsCallback`, clasificado en niveles de severidad
+  con una heurística de probable cuello de botella.
+* **Sesiones** que controlas: auto-iniciadas, nombradas, detenidas, comparadas.
+* **Artefactos compartibles**: JSON determinista (schema v1), informes de
+  texto formateado, tablas de comparación antes/después.
+* **Salida lista para IA**: un bloque de contexto optimizado en tokens que
+  puedes pegar directamente en una conversación con un LLM para depurar una
+  regresión de jank.
 
-PerfScope observes; it never transmits. See [Privacy](#privacy).
+PerfScope observa; nunca transmite. Ver [Privacidad](#privacidad).
 
-## Installation
+## Instalación
 
 ```bash
 flutter pub add --dev perfscope
 ```
 
-PerfScope is a *dev dependency*: it is instrumentation you run while
-developing and profiling, not something your production users need.
+PerfScope es una *dependencia de desarrollo*: es instrumentación que ejecutas
+mientras desarrollas y perfilas, no algo que tus usuarios de producción
+necesiten.
 
-## 30-second setup
+## Configuración en 30 segundos
 
 ```dart
 import 'package:flutter/material.dart';
@@ -48,14 +51,17 @@ void main() {
 }
 ```
 
-That's it. A session starts automatically (`autoStartSession` defaults to
-`true`), frames are classified as they arrive, anomalies print to the console,
-and `await PerfScope.stopSession()` returns the full `PerformanceReport`.
+Eso es todo. Una sesión se inicia automáticamente (`autoStartSession` por
+defecto es `true`), los frames se clasifican a medida que llegan, las
+anomalías se imprimen en la consola y `await PerfScope.stopSession()` devuelve
+el `PerformanceReport` completo.
 
-> **Warning — Profile mode only for trustworthy numbers.**
-> Debug builds carry assertions and JIT overhead: frame timings measured under
-> `flutter run` (debug) are NOT representative of real-world behavior.
-> PerfScope prints exactly one warning when initialized in debug mode:
+> **Advertencia — Solo modo Profile para números confiables.**
+> Las compilaciones de debug llevan aserciones y sobrecarga JIT: los tiempos
+> de frame medidos con `flutter run` (debug) NO son representativos del
+> comportamiento real.
+> PerfScope imprime exactamente una advertencia cuando se inicializa en modo
+> debug:
 >
 > ```
 > [PerfScope] Running in DEBUG mode: performance measurements are NOT
@@ -63,23 +69,24 @@ and `await PerfScope.stopSession()` returns the full `PerformanceReport`.
 > trustworthy numbers.
 > ```
 >
-> Always measure with `flutter run --profile`.
+> Siempre mide con `flutter run --profile`.
 
-### Strict profile-only setup (recommended)
+### Configuración estricta solo-profile (recomendada)
 
-The example app demonstrates the cleanest arrangement: release entry points
-never import PerfScope at all, so the observability code is tree-shaken out of
-release builds entirely. Three files:
+La app de ejemplo demuestra la disposición más limpia: los puntos de entrada
+de release nunca importan PerfScope, de modo que el código de observabilidad
+se elimina por completo de las compilaciones de release. Tres archivos:
 
 ```dart
-// lib/main.dart — RELEASE entry. No PerfScope import anywhere.
+// lib/main.dart — PUNTO DE ENTRADA DE RELEASE. Sin import de PerfScope.
 import 'app/showcase_app.dart';
 
 void main() => runShowcaseApp();
 ```
 
 ```dart
-// lib/main_profile.dart — PROFILE entry. PerfScope initializes here only.
+// lib/main_profile.dart — PUNTO DE ENTRADA DE PROFILE. PerfScope se
+// inicializa solo aquí.
 import 'package:flutter/material.dart';
 import 'package:perfscope/perfscope.dart';
 
@@ -94,82 +101,86 @@ void main() {
 ```
 
 ```dart
-// lib/perf_bootstrap.dart — engine wiring only: shared MemorySink,
-// PerfScope.initialize(config:, sinks:), named session open/close.
+// lib/perf_bootstrap.dart — solo cableado del motor: MemorySink compartido,
+// PerfScope.initialize(config:, sinks:), apertura/cierre de sesión nombrada.
 ```
 
-Run it with:
+Ejecútala con:
 
 ```bash
 flutter run --profile -t lib/main_profile.dart
 ```
 
-If your app must also work in debug builds, initialize behind a mode check:
+Si tu app también debe funcionar en compilaciones de debug, inicializa detrás
+de una comprobación de modo:
 `if (kDebugMode || kProfileMode) PerfScope.initialize();`.
 
-## Scenario showcase
+## Escaparate de escenarios
 
-The `example/` package is a categorized scenario-showcase app: every PerfScope
-capability gets a dedicated screen that explains what is captured, displays the
-exact usage code on screen, and renders live results from real engine events -
-frame jank recipes, tracing, interaction/screen context, sessions and reports,
-live event console, AI context, JSON export, and before/after comparison. It
-also demonstrates graceful degradation when PerfScope is not initialized.
+El paquete `example/` es una app de escaparate categorizada: cada capacidad de
+PerfScope tiene una pantalla dedicada que explica qué captura, muestra el
+código de uso exacto en pantalla y renderiza resultados en vivo de eventos
+reales del motor — recetas de jank de frames, trazado, contexto de
+pantalla/interacción, sesiones e informes, consola de eventos en vivo,
+contexto IA, exportación JSON y comparación antes/después. También demuestra
+la degradación elegante cuando PerfScope no está inicializado.
 
-See [example/README.md](example/README.md) for run instructions, the
-scenario-to-API map, and per-category code snippets.
+Ver [example/README.md](example/README.md) para instrucciones de ejecución, el
+mapa escenario-a-API y los snippets de código por categoría.
 
-## Frame monitoring
+## Monitoreo de frames
 
-PerfScope subscribes to Flutter's frame timing stream once, per engine start.
-Every completed frame becomes an immutable `FrameSample`
-(build / raster / total durations vsync overhead) enriched with the current
-screen and interaction attribution, then classified against the effective
-frame budget:
+PerfScope se suscribe al stream de tiempos de frame de Flutter una vez, por
+inicio del motor. Cada frame completado se convierte en un `FrameSample`
+inmutable (duraciones de build / raster / total, sobrecarga de vsync)
+enriquecido con la pantalla y la interacción actuales, y luego se clasifica
+contra el presupuesto de frame efectivo:
 
-| Total duration vs budget | Tier    |
-|--------------------------|---------|
-| <= budget                | normal  |
-| > budget                 | warning |
-| > budget x 1.5           | slow    |
-| > budget x 3             | severe  |
+| Duración total vs presupuesto | Nivel   |
+|-------------------------------|---------|
+| <= presupuesto                | normal  |
+| > presupuesto                 | warning |
+| > presupuesto x 1.5           | slow    |
+| > presupuesto x 3             | severe  |
 
-The budget defaults to 60 Hz (`targetFrameRate`) and can be overridden or
-resolved from refresh-rate detection. Thresholds are configurable through
+El presupuesto por defecto es 60 Hz (`targetFrameRate`) y se puede sobrescribir
+o resolver desde la detección de frecuencia de refresco. Los umbrales son
+configurables mediante
 `PerformanceThresholds(warningMultiplier:, slowMultiplier:, severeMultiplier:)`.
 
-Per-frame bookkeeping is O(1): counters, running sums, and one ring-buffer
-slot (see [Performance overhead](#performance-overhead)). Percentile math is
-deferred to snapshot time.
+La contabilidad por frame es O(1): contadores, sumas acumuladas y una ranura de
+ring buffer (ver [Sobrecarga de rendimiento](#sobrecarga-de-rendimiento)). El
+cálculo de percentiles se difiere al momento de la instantánea.
 
-## Anomalies
+## Anomalías
 
-Only slow/severe frames become anomalies — warning-tier frames stay events.
-Five anomaly types ship out of the box:
+Solo los frames slow/severe se convierten en anomalías — los frames de nivel
+warning siguen siendo eventos. Cinco tipos de anomalía vienen incluidos:
 
-| Type                     | Raised when                                            |
-|--------------------------|--------------------------------------------------------|
-| `SlowFrameAnomaly`       | slow/severe frame, bottleneck could not be inferred     |
-| `UiBoundFrameAnomaly`    | UI-thread work dominates (build >= 2x raster)          |
-| `RasterBoundFrameAnomaly`| Raster-thread work dominates (raster >= 2x build)      |
-| `MixedFrameAnomaly`      | Both phases contribute comparably                       |
-| `LongTraceAnomaly`       | A manual trace exceeded `longTraceThreshold`            |
+| Tipo                       | Se eleva cuando                                              |
+|----------------------------|--------------------------------------------------------------|
+| `SlowFrameAnomaly`         | frame slow/severe, no se pudo inferir el cuello de botella    |
+| `UiBoundFrameAnomaly`      | el trabajo del hilo UI domina (build >= 2x raster)           |
+| `RasterBoundFrameAnomaly`  | el trabajo del hilo raster domina (raster >= 2x build)       |
+| `MixedFrameAnomaly`        | Ambas fases contribuyen de forma comparable                   |
+| `LongTraceAnomaly`         | Un trace manual superó `longTraceThreshold`                   |
 
-Severity mapping (documented contract):
+Mapeo de severidad (contrato documentado):
 
-* Frame anomalies: `slow` -> **high**, `severe` -> **critical**. Warning-tier
-  frames never reach anomaly creation.
-* Long-trace anomalies scale with the configured threshold (default 50 ms):
-  >= 2x threshold -> **high**, >= 5x -> **critical**, otherwise **medium**.
+* Anomalías de frame: `slow` -> **high**, `severe` -> **critical**. Los frames
+  de nivel warning nunca llegan a la creación de anomalías.
+* Anomalías de trace largo escalan con el umbral configurado (default 50 ms):
+  >= 2x umbral -> **high**, >= 5x -> **critical**, en otro caso **medium**.
 
-The bottleneck is a HEURISTIC derived solely from frame timing shapes. It
-indicates the *probable* phase — never proven cause. Recent anomalies are
-reachable through `PerfScope.anomalies`, each frame anomaly's surrounding
-frames through `PerfScope.contextWindowFor(anomalyId)`.
+El cuello de botella es una HEURÍSTICA derivada únicamente de las formas de los
+tiempos de frame. Indica la fase *probable* — nunca la causa probada. Las
+anomalías recientes son alcanzables mediante `PerfScope.anomalies`, los frames
+alrededor de cada anomalía de frame mediante
+`PerfScope.contextWindowFor(anomalyId)`.
 
-## Navigation
+## Navegación
 
-Attach the observer and screens name themselves from routes:
+Adjunta el observer y las pantallas se nombran a sí mismas desde las rutas:
 
 ```dart
 MaterialApp(
@@ -178,25 +189,27 @@ MaterialApp(
 )
 ```
 
-* Named routes become screen names; frames, anomalies, traces, and report
-  summaries attribute themselves to the visible screen.
-* Apps without a Navigator can override manually:
+* Las rutas nombradas se convierten en nombres de pantalla; los frames, las
+  anomalías, los traces y los resúmenes de informe se atribuyen a la pantalla
+  visible.
+* Las apps sin Navigator pueden sobrescribir manualmente:
   `PerfScope.screen('checkout');`.
-* Unnamed routes report `'unknown'`. Give important routes names.
+* Las rutas sin nombre reportan `'unknown'`. Da nombres a las rutas
+  importantes.
 
-## Interactions
+## Interacciones
 
-Two complementary styles:
+Dos estilos complementarios:
 
-**Quick marker** — one-liner for tap-like flows. The marker is attributed to
-the very next observed frame batch; nothing else to close:
+**Marcador rápido** — una línea para flujos tipo tap. El marcador se atribuye
+al siguiente lote de frames observado; nada más que cerrar:
 
 ```dart
 PerfScope.interaction('add_to_cart');
 ```
 
-**Span** — for flows that outlive a single frame. Returns a handle; call
-`end()` exactly once (out-of-order endings are supported):
+**Span** — para flujos que sobreviven a un solo frame. Devuelve un handle;
+llama a `end()` exactamente una vez (se soportan cierres fuera de orden):
 
 ```dart
 final handle = PerfScope.startInteraction('checkout');
@@ -204,15 +217,17 @@ await pay();
 handle.end();
 ```
 
-Spans nest: each `InteractionEvent` carries the innermost-active span's id as
-its parent, so a `tap_pay` inside `checkout` stays attributable. Nesting is
-guarded at 16 levels (runaway starts are caller bugs; deeper starts return an
-inert handle). Frames rendered while a span is open are attributed to it —
-temporal correlation, not causation.
+Los spans se anidan: cada `InteractionEvent` lleva el id del span activo más
+interno como padre, de modo que un `tap_pay` dentro de `checkout` sigue siendo
+atribuible. El anidamiento está protegido en 16 niveles (los starts sin control
+son bugs del llamador; los starts más profundos devuelven un handle inerte).
+Los frames renderizados mientras un span está abierto se atribuyen a él —
+correlación temporal, no causalidad.
 
-## Tracing
+## Trazado
 
-Time any operation and feed both the session record and the Timeline:
+Mide el tiempo de cualquier operación y alimenta tanto el registro de sesión
+como el Timeline:
 
 ```dart
 final prices = PerfScope.trace('calculate_prices', () =>
@@ -221,47 +236,48 @@ final prices = PerfScope.trace('calculate_prices', () =>
 final user = await PerfScope.traceAsync('fetch_user', () => api.getUser());
 ```
 
-Exception contract: if `body` throws, PerfScope records the trace as failed
-(`didThrow`, duration included) and then rethrows the ORIGINAL error and stack
-trace untouched. Metadata passed via `metadata:` is validated and embedded in
-the resulting event. Traces exceeding `longTraceThreshold` (default 50 ms)
-raise a `LongTraceAnomaly`.
+Contrato de excepciones: si `body` lanza, PerfScope registra el trace como
+fallido (`didThrow`, duración incluida) y luego relanza el error ORIGINAL y el
+stack trace sin tocar. Los metadatos pasados mediante `metadata:` se validan y
+se incrustan en el evento resultante. Los traces que superan
+`longTraceThreshold` (default 50 ms) elevan una `LongTraceAnomaly`.
 
-Timeline integration: synchronous traces emit `Timeline.startSync` /
-`finishSync`; async traces emit `TimelineTask` spans (the SDK has no async
-`startSync`). Adapter failures are swallowed — Timeline problems can never
-break app flow. Recent traces: `PerfScope.recentTraces`.
+Integración con Timeline: los traces síncronos emiten
+`Timeline.startSync` / `finishSync`; los traces asíncronos emiten spans
+`TimelineTask` (el SDK no tiene `startSync` asíncrono). Los fallos de adaptador
+se tragan — los problemas del Timeline nunca pueden romper el flujo de la app.
+Traces recientes: `PerfScope.recentTraces`.
 
-## Sessions
+## Sesiones
 
-A session is one recorded observation window. By default one starts
-automatically at `initialize()`.
+Una sesión es una ventana de observación grabada. Por defecto una se inicia
+automáticamente en `initialize()`.
 
 ```dart
-final session = PerfScope.startSession('release-check'); // auto-finalizes any open session
-// ... exercise the app ...
-final report = await PerfScope.stopSession(); // full PerformanceReport
+final session = PerfScope.startSession('release-check'); // auto-finaliza cualquier sesión abierta
+// ... ejercita la app ...
+final report = await PerfScope.stopSession(); // PerformanceReport completo
 ```
 
-* Double-start is safe: opening a new session auto-finalizes the previous one
-  (its report stays reachable via its attached report).
-* Consecutive `stopSession()` calls throw — there is nothing open.
-* `PerfScope.currentSession` and `PerfScope.lastReport` answer passively;
-  they never throw.
+* El doble inicio es seguro: abrir una sesión nueva auto-finaliza la anterior
+  (su informe sigue siendo alcanzable mediante su informe adjunto).
+* Las llamadas consecutivas a `stopSession()` lanzan — no hay nada abierto.
+* `PerfScope.currentSession` y `PerfScope.lastReport` responden pasivamente;
+  nunca lanzan.
 
 ## Logs
 
-Four styles via `PerfScopeConfig(logStyle:)`: `silent`, `compact`, `pretty`,
-`json`. Samples below are exact renderer output.
+Cuatro estilos mediante `PerfScopeConfig(logStyle:)`: `silent`, `compact`,
+`pretty`, `json`. Las muestras siguientes son la salida exacta del renderer.
 
-**compact** — one line per anomaly/warning:
+**compact** — una línea por anomalía/advertencia:
 
 ```text
 PERF ProductList | UI 27.4ms | Raster 4.8ms | Total 33.1ms | Budget 16.7ms | HIGH ui-bound
 PERF TRACE calculate_prices | 127.0ms | HIGH
 ```
 
-**pretty** (default) — box-drawing cards:
+**pretty** (default) — tarjetas con cajas dibujadas:
 
 ```text
 ╭──────────────────────────────────────────────────────────╮
@@ -281,21 +297,21 @@ PERF TRACE calculate_prices | 127.0ms | HIGH
 ╰──────────────────────────────────────────────────────────╯
 ```
 
-**json** — NDJSON envelopes, machine-parseable:
+**json** — sobres NDJSON, parseables por máquina:
 
 ```json
 {"schema_version":1,"type":"performance_anomaly","anomaly_type":"ui_bound_frame","event_id":"evt_1","session_id":"ses_1","timestamp":"2026-01-01T00:00:00.000Z","screen":"ProductList","interaction_id":"int_1","frame":{"build_ms":27.4,"raster_ms":4.8,"total_ms":33.1,"budget_ms":16.67},"severity":"high","probable_bottleneck":"ui"}
 ```
 
-**silent** — no output.
+**silent** — sin salida.
 
-Raw events bypass logging entirely through the broadcast `PerfScope.events`
-stream and injectable sinks.
+Los eventos crudos omiten el registro por completo a través del stream
+broadcast `PerfScope.events` y de los sinks inyectables.
 
-## Reports
+## Informes
 
-Stopping a session renders a fixed-width summary box (identical layout via
-`TextExporter` or `formatReportText`):
+Detener una sesión renderiza una caja de resumen de ancho fijo (diseño
+idéntico mediante `TextExporter` o `formatReportText`):
 
 ```text
 ╭──────────────────────────────────────────────────────────╮
@@ -316,40 +332,41 @@ Stopping a session renders a fixed-width summary box (identical layout via
 ╰──────────────────────────────────────────────────────────╯
 ```
 
-Reports rank screens and interactions deterministically (anomaly count, then
-p95, then name) and list the worst anomalies first.
+Los informes clasifican pantallas e interacciones de forma determinista
+(conteo de anomalías, luego p95, luego nombre) y listan las peores anomalías
+primero.
 
-## JSON export
+## Exportación JSON
 
-Deterministic single-line JSON, schema version 1:
+JSON determinista de una sola línea, schema versión 1:
 
 ```dart
 final json = PerfScope.exportCurrentSessionAsJson();
 
-// After stopSession() there is no OPEN session anymore; the export falls
-// back to the last finished session's attached report instead of returning
-// null, so post-stop export just works.
+// Después de stopSession() ya no hay sesión ABIERTA; la exportación cae al
+// informe adjunto de la última sesión finalizada en lugar de devolver null,
+// de modo que la exportación post-stop simplemente funciona.
 final report = await PerfScope.stopSession();
 final stopped = PerfScope.exportCurrentSessionAsJson();
 ```
 
-Round-trip guarantee — everything the writer emits, the parser reads back:
+Garantía de ida y vuelta — todo lo que el writer emite, el parser lo lee:
 
 ```dart
 final parsed = SessionParser().parseString(json);
-expect(parsed.session.id, originalId); // in tests
+expect(parsed.session.id, originalId); // en tests
 ```
 
-Destinations are host concerns; PerfScope ships three seams:
+Los destinos son preocupaciones del host; PerfScope incluye tres seams:
 
-* `CallbackExporter(onJson:)` — you decide where bytes go.
-* `InMemoryExporter` — buffers JSON strings for tests/debug screens.
-* `TextExporter` — human-readable summary box.
+* `CallbackExporter(onJson:)` — tú decides adónde van los bytes.
+* `InMemoryExporter` — almacena strings JSON para tests/pantallas de debug.
+* `TextExporter` — caja de resumen legible por humanos.
 
-## AI Context
+## Contexto IA
 
-One call turns a report into LLM-ready context
-(`report.toAiContext()` or `buildAiContextText(report)`):
+Una llamada convierte un informe en contexto listo para LLM
+(`report.toAiContext()` o `buildAiContextText(report)`):
 
 ```text
 PERFSCOPE_SESSION
@@ -375,11 +392,11 @@ p95_ms: 29
 probable_bottleneck: UI
 ```
 
-Output is token-optimized, hard-capped, and never invents data it does not
-have. Pipe it through the CLI: `dart run perfscope:perfscope ai-context
+La salida está optimizada en tokens, con tope duro y nunca inventa datos que no
+tiene. Envíala por el CLI: `dart run perfscope:perfscope ai-context
 session.json > context.txt`.
 
-Recommended prompt to pair with it:
+Prompt recomendado para acompañarla:
 
 ```text
 You are a senior Flutter performance engineer. Below is a PerfScope session
@@ -392,28 +409,28 @@ timeline tracing where certainty is needed.
 <paste context.txt here>
 ```
 
-## Before/After comparisons
+## Comparaciones antes/después
 
-Pure, engine-free comparison of any two reports:
+Comparación pura, sin motor, de dos informes cualesquiera:
 
 ```dart
 final comparison = PerfScope.compareSessions(baselineReport, candidateReport);
 print(formatSessionComparison(comparison));
 ```
 
-Or straight from files:
+O directamente desde archivos:
 
 ```bash
 dart run perfscope:perfscope compare baseline.json candidate.json
 ```
 
-Metric deltas are reported per label (frames, p50/p95/p99, worst frame,
-anomalies, ...) so regressions surface as signed percentages instead of gut
-feelings.
+Los deltas de métricas se reportan por etiqueta (frames, p50/p95/p99, peor
+frame, anomalías, ...) de modo que las regresiones aparecen como porcentajes
+con signo en lugar de corazonadas.
 
 ## CLI
 
-Offline tooling over exported session files:
+Herramientas offline sobre archivos de sesión exportados:
 
 ```text
 Usage: dart run perfscope:perfscope <command> [arguments]
@@ -430,7 +447,7 @@ Exit codes:
   3 invalid session file   4 doctor found missing requirements
 ```
 
-Sanity-check your environment (actual output; versions vary by machine):
+Comprueba tu entorno (salida real; las versiones varían según la máquina):
 
 ```text
 $ dart run perfscope:perfscope doctor
@@ -443,34 +460,36 @@ Recommended performance mode:
   flutter run --profile
 ```
 
-## Privacy
+## Privacidad
 
-PerfScope collects NOTHING and transmits NOTHING. There is no network code in
-the package — not for telemetry, not for error reporting, not for "anonymous
-usage statistics". Explicitly, PerfScope never touches:
+PerfScope NO recopila NADA y NO transmite NADA. No hay código de red en el
+paquete — ni telemetría, ni reporte de errores, ni "estadísticas de uso
+anónimas". Explícitamente, PerfScope nunca toca:
 
-* device identifiers or advertising IDs,
-* user identifiers or account data,
-* screen contents, text entered, or images rendered,
-* crash logs or stack traces of YOUR exceptions (only PerfScope's own traced
-  failures are recorded, locally),
-* any analytics or telemetry pipeline.
+* identificadores de dispositivo o IDs de publicidad,
+* identificadores de usuario o datos de cuenta,
+* contenidos de pantalla, texto ingresado o imágenes renderizadas,
+* crash logs o stack traces de TUS excepciones (solo se registran los fallos
+  de los traces del propio PerfScope, localmente),
+* ninguna pipeline de analítica o telemetría.
 
-Everything lives in bounded in-process memory until YOU export it through your
-own chosen channel. Correlation ids (`ses_1`, `anm_2`, `trc_3`) are local-only
-sequence numbers — useful within one process, meaningless outside it.
+Todo vive en memoria acotada dentro del proceso hasta que TÚ lo exportas por
+tu propio canal elegido. Los ids de correlación (`ses_1`, `anm_2`, `trc_3`)
+son solo números de secuencia locales — útiles dentro de un proceso, sin
+significado fuera de él.
 
-## Performance overhead
+## Sobrecarga de rendimiento
 
-Honest accounting:
+Contabilidad honesta:
 
-* Per-frame work is classification plus enqueue ONLY: a few integer
-  comparisons, counter updates, and one slot write into a preallocated ring
-  buffer. No allocation per frame, no sorting, no string building.
-* Percentiles sort a bounded window (default 10,000 samples) only when a
-  snapshot/export happens — never on the frame path.
-* Absolute numbers vary by device; do not trust anyone else's benchmarks,
-  including these docs. Run them yourself:
+* El trabajo por frame es clasificación más encolado SOLO: unas pocas
+  comparaciones de enteros, actualizaciones de contadores y una escritura de
+  ranura en un ring buffer preasignado. Sin asignación por frame, sin
+  ordenamiento, sin construcción de strings.
+* Los percentiles ordenan una ventana acotada (default 10,000 muestras) solo
+  cuando ocurre una instantánea/exportación — nunca en la ruta del frame.
+* Los números absolutos varían según el dispositivo; no confíes en los
+  benchmarks de nadie, incluidos estos docs. Ejecútalos tú mismo:
 
 ```bash
 dart run benchmark/frame_classification_benchmark.dart
@@ -480,80 +499,84 @@ dart run benchmark/statistics_benchmark.dart
 dart run benchmark/serialization_benchmark.dart
 ```
 
-Each prints median ns/op and ops/sec over timed batches after warmup.
+Cada uno imprime la mediana en ns/op y ops/seg sobre lotes cronometrados
+después del warmup.
 
-## Platform support
+## Soporte de plataformas
 
-| Capability                        | Android | iOS | macOS | Windows | Linux | Web |
-|-----------------------------------|---------|-----|-------|---------|-------|-----|
-| Frame monitoring (`FrameTiming`)  | yes     | yes | yes   | yes     | yes   | ?   |
-| Manual tracing / interactions     | yes     | yes | yes   | yes     | yes   | yes |
-| Sessions, reports, JSON, CLI      | yes     | yes | yes   | yes     | yes   | yes |
+| Capacidad                             | Android | iOS | macOS | Windows | Linux | Web |
+|---------------------------------------|---------|-----|-------|---------|-------|-----|
+| Monitoreo de frames (`FrameTiming`)   | sí      | sí  | sí    | sí      | sí    | ?   |
+| Trazado / interacciones manuales      | sí      | sí  | sí    | sí      | sí    | sí  |
+| Sesiones, informes, JSON, CLI         | sí      | sí  | sí    | sí      | sí    | sí  |
 
-Refresh-rate detection is platform-dependent: where the OS will not disclose
-the display's actual refresh rate, PerfScope falls back to the configured
-budget and says so in the session environment (`frameBudgetSource`).
+La detección de frecuencia de refresco depende de la plataforma: donde el SO
+no revela la frecuencia real de refresco de la pantalla, PerfScope cae al
+presupuesto configurado y lo indica en el entorno de la sesión
+(`frameBudgetSource`).
 
-The web column for frame monitoring is an honest `?`: Flutter's
-`addTimingsCallback` web behavior is undocumented upstream, so PerfScope makes
-no claim it cannot verify. Everything else is pure Dart and works everywhere
-Dart runs.
+La columna web para el monitoreo de frames es un `?` honesto: el
+comportamiento de `addTimingsCallback` en web no está documentado upstream, así
+que PerfScope no hace ninguna afirmación que no pueda verificar. Todo lo demás
+es Dart puro y funciona en cualquier lugar donde Dart se ejecute.
 
-## Architecture
+## Arquitectura
 
-One glance at `lib/src`:
+Una mirada a `lib/src`:
 
 ```
-core/          engine wiring, config, clock abstraction, id generators
-frames/        FrameSample, classifier, budgets, Flutter frame source
-anomalies/     anomaly models, detector, frame context windows
-buffers/       RingBuffer — the only mutable hot-path structure
-context/       screen tracker, interaction tracker, metadata store
-events/        the typed event hierarchy (frame/screen/interaction/trace/anomaly/lifecycle)
-sessions/      session lifecycle and aggregates
-reporting/     statistics, screen/interaction summaries, report builder, comparisons
-serialization/ schema v1, serializer, parser (round-trip safe)
-exporters/     callback / in-memory / text exporters
-logging/       log writer + silent/compact/pretty/json renderers
-navigation/    navigator observer
-traces/        manual trace tracking, Timeline adapters
-sinks/         console/json/memory event sinks
-ai/            AI context builders
-cli/           offline command-line interface
-testing/       test fakes and fixtures
+core/          cableado del motor, config, abstracción de reloj, generadores de id
+frames/        FrameSample, clasificador, presupuestos, fuente de frames de Flutter
+anomalies/     modelos de anomalía, detector, ventanas de contexto de frames
+buffers/       RingBuffer — la única estructura mutable de la ruta caliente
+context/       rastreador de pantalla, rastreador de interacciones, store de metadatos
+events/        la jerarquía de eventos tipada (frame/screen/interaction/trace/anomaly/lifecycle)
+sessions/      ciclo de vida de sesiones y agregados
+reporting/     estadísticas, resúmenes de pantalla/interacción, constructor de informes, comparaciones
+serialization/ schema v1, serializador, parser (seguro de ida y vuelta)
+exporters/     exporters de callback / en memoria / texto
+logging/       escritor de logs + renderers silent/compact/pretty/json
+navigation/    observer de navigator
+traces/        seguimiento de traces manuales, adaptadores de Timeline
+sinks/         sinks de eventos de consola/json/memoria
+ai/            constructores de contexto IA
+cli/           interfaz de línea de comandos offline
+testing/       fakes y fixtures de test
 ```
 
-Dependencies: Flutter SDK and `args` (CLI parsing). Nothing else.
+Dependencias: Flutter SDK y `args` (parsing de CLI). Nada más.
 
-## Limitations
+## Limitaciones
 
-* **FrameTiming cannot name guilty functions.** The engine sees per-phase
-  durations, not stack samples. `probableBottleneck` is a heuristic over
-  timing shapes; attributing blame to specific widgets requires timeline
-  tracing (which PerfScope makes easy, but does not fake).
-* **Percentiles come from a bounded rolling window**
-  (`maxStatisticSamples`, default 10,000). Long sessions describe their recent
-  past, not their entire history; counters and sums stay exact throughout.
-* **Unnamed routes report `'unknown'`.** Name your routes.
-* **Web frame monitoring is unverified.** `addTimingsCallback` behavior on
-  web is undocumented upstream; treat the web column above as unknown rather
-  than broken.
-* **Correlation ids are process-local** — never use them as database keys.
+* **FrameTiming no puede nombrar funciones culpables.** El motor ve duraciones
+  por fase, no muestras de stack. `probableBottleneck` es una heurística sobre
+  formas de tiempos; atribuir culpa a widgets específicos requiere trazado de
+  Timeline (que PerfScope facilita, pero no falsifica).
+* **Los percentiles provienen de una ventana deslizante acotada**
+  (`maxStatisticSamples`, default 10,000). Las sesiones largas describen su
+  pasado reciente, no su historia completa; los contadores y sumas siguen
+  siendo exactos en todo momento.
+* **Las rutas sin nombre reportan `'unknown'`.** Nombra tus rutas.
+* **El monitoreo de frames en web no está verificado.** El comportamiento de
+  `addTimingsCallback` en web no está documentado upstream; trata la columna
+  web de arriba como desconocida, no como rota.
+* **Los ids de correlación son locales al proceso** — nunca los uses como
+  claves de base de datos.
 
 ## Roadmap
 
-* **v0.2** — runtime bridge direction: expose live sessions/streams to
-  external tooling (MCP-style integration) so agents and dashboards can query
-  PerfScope while the app runs.
-* Later — additional metrics beyond frames/traces: CPU, memory, GC pressure,
-  isolate activity. Each lands only with an honest, documented collection
-  mechanism.
+* **v0.2** — dirección de puente en runtime: exponer sesiones/streams en vivo
+  a herramientas externas (integración estilo MCP) para que agentes y
+  dashboards puedan consultar PerfScope mientras la app se ejecuta.
+* Más adelante — métricas adicionales más allá de frames/traces: CPU, memoria,
+  presión de GC, actividad de isolates. Cada una aterriza solo con un
+  mecanismo de recolección honesto y documentado.
 
-## Contributing
+## Contribuciones
 
-Issues and PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for setup,
-quality gates, and expectations.
+Issues y PRs bienvenidos — ver [CONTRIBUTING.md](CONTRIBUTING.md) para setup,
+gates de calidad y expectativas.
 
-## License
+## Licencia
 
 [MIT](LICENSE)

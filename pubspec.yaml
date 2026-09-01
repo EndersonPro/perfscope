@@ -1,0 +1,28 @@
+name: perfscope
+description: >
+  Local performance observability for Flutter. Detect performance
+  anomalies, track screens and interactions, record sessions,
+  compare regressions, and generate AI-ready performance reports.
+version: 0.1.0
+environment:
+  sdk: ^3.5.0
+  flutter: ">=3.24.0"
+dependencies:
+  args: ^2.7.0
+  flutter:
+    sdk: flutter
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  integration_test:
+    sdk: flutter
+  # Subject app for integration_test/perfscope_e2e_test.dart.
+  perfscope_example:
+    path: example
+topics:
+  - flutter
+  - performance
+  - profiling
+  - debugging
+  - observability
