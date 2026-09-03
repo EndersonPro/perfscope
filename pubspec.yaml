@@ -1,10 +1,10 @@
 name: perfscope
-description: >
-  Local performance observability for Flutter. Detect performance
-  anomalies, track screens and interactions, record sessions,
-  compare regressions, and generate AI-ready performance reports.
+description: Local performance observability for Flutter. Detect anomalies, record sessions, compare regressions, and generate AI-ready reports.
 version: 0.1.0
+homepage: https://github.com/EndersonPro/perfscope
 repository: https://github.com/EndersonPro/perfscope
+issue_tracker: https://github.com/EndersonPro/perfscope/issues
+documentation: https://github.com/EndersonPro/perfscope
 environment:
   sdk: ^3.5.0
   flutter: ">=3.24.0"

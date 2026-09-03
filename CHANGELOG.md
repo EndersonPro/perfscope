@@ -5,7 +5,7 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 0.1.0 - Lanzamiento inicial
+## 0.1.0 - 2026-09-03
 
 Observabilidad de rendimiento local para Flutter: detección de anomalías de
 frames en el dispositivo, sesiones, informes, comparaciones y contexto listo
