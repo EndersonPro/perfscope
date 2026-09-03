@@ -20,13 +20,13 @@ DevTools responde "¿qué pasó en ESTA sesión conectada?". PerfScope responde
 "¿cómo se comporta mi app durante el uso REAL, en dispositivos reales, a lo
 largo del tiempo?" — sin conexión a un escritorio:
 
-* **Monitoreo de frames siempre activo** mediante
+- **Monitoreo de frames siempre activo** mediante
   `SchedulerBinding.addTimingsCallback`, clasificado en niveles de severidad
   con una heurística de probable cuello de botella.
-* **Sesiones** que controlas: auto-iniciadas, nombradas, detenidas, comparadas.
-* **Artefactos compartibles**: JSON determinista (schema v1), informes de
+- **Sesiones** que controlas: auto-iniciadas, nombradas, detenidas, comparadas.
+- **Artefactos compartibles**: JSON determinista (schema v1), informes de
   texto formateado, tablas de comparación antes/después.
-* **Salida lista para IA**: un bloque de contexto optimizado en tokens que
+- **Salida lista para IA**: un bloque de contexto optimizado en tokens que
   puedes pegar directamente en una conversación con un LLM para depurar una
   regresión de jank.
 
@@ -171,9 +171,9 @@ warning siguen siendo eventos. Cinco tipos de anomalía vienen incluidos:
 
 Mapeo de severidad (contrato documentado):
 
-* Anomalías de frame: `slow` -> **high**, `severe` -> **critical**. Los frames
+- Anomalías de frame: `slow` -> **high**, `severe` -> **critical**. Los frames
   de nivel warning nunca llegan a la creación de anomalías.
-* Anomalías de trace largo escalan con el umbral configurado (default 50 ms):
+- Anomalías de trace largo escalan con el umbral configurado (default 50 ms):
   >= 2x umbral -> **high**, >= 5x -> **critical**, en otro caso **medium**.
 
 El cuello de botella es una HEURÍSTICA derivada únicamente de las formas de los
@@ -193,12 +193,12 @@ MaterialApp(
 )
 ```
 
-* Las rutas nombradas se convierten en nombres de pantalla; los frames, las
+- Las rutas nombradas se convierten en nombres de pantalla; los frames, las
   anomalías, los traces y los resúmenes de informe se atribuyen a la pantalla
   visible.
-* Las apps sin Navigator pueden sobrescribir manualmente:
+- Las apps sin Navigator pueden sobrescribir manualmente:
   `PerfScope.screen('checkout');`.
-* Las rutas sin nombre reportan `'unknown'`. Da nombres a las rutas
+- Las rutas sin nombre reportan `'unknown'`. Da nombres a las rutas
   importantes.
 
 ## Interacciones
@@ -263,10 +263,10 @@ final session = PerfScope.startSession('release-check'); // auto-finaliza cualqu
 final report = await PerfScope.stopSession(); // PerformanceReport completo
 ```
 
-* El doble inicio es seguro: abrir una sesión nueva auto-finaliza la anterior
+- El doble inicio es seguro: abrir una sesión nueva auto-finaliza la anterior
   (su informe sigue siendo alcanzable mediante su informe adjunto).
-* Las llamadas consecutivas a `stopSession()` lanzan — no hay nada abierto.
-* `PerfScope.currentSession` y `PerfScope.lastReport` responden pasivamente;
+- Las llamadas consecutivas a `stopSession()` lanzan — no hay nada abierto.
+- `PerfScope.currentSession` y `PerfScope.lastReport` responden pasivamente;
   nunca lanzan.
 
 ## Logs
@@ -363,9 +363,9 @@ expect(parsed.session.id, originalId); // en tests
 
 Los destinos son preocupaciones del host; PerfScope incluye tres seams:
 
-* `CallbackExporter(onJson:)` — tú decides adónde van los bytes.
-* `InMemoryExporter` — almacena strings JSON para tests/pantallas de debug.
-* `TextExporter` — caja de resumen legible por humanos.
+- `CallbackExporter(onJson:)` — tú decides adónde van los bytes.
+- `InMemoryExporter` — almacena strings JSON para tests/pantallas de debug.
+- `TextExporter` — caja de resumen legible por humanos.
 
 ## Contexto IA
 
@@ -470,12 +470,12 @@ PerfScope NO recopila NADA y NO transmite NADA. No hay código de red en el
 paquete — ni telemetría, ni reporte de errores, ni "estadísticas de uso
 anónimas". Explícitamente, PerfScope nunca toca:
 
-* identificadores de dispositivo o IDs de publicidad,
-* identificadores de usuario o datos de cuenta,
-* contenidos de pantalla, texto ingresado o imágenes renderizadas,
-* crash logs o stack traces de TUS excepciones (solo se registran los fallos
+- identificadores de dispositivo o IDs de publicidad,
+- identificadores de usuario o datos de cuenta,
+- contenidos de pantalla, texto ingresado o imágenes renderizadas,
+- crash logs o stack traces de TUS excepciones (solo se registran los fallos
   de los traces del propio PerfScope, localmente),
-* ninguna pipeline de analítica o telemetría.
+- ninguna pipeline de analítica o telemetría.
 
 Todo vive en memoria acotada dentro del proceso hasta que TÚ lo exportas por
 tu propio canal elegido. Los ids de correlación (`ses_1`, `anm_2`, `trc_3`)
@@ -486,13 +486,13 @@ significado fuera de él.
 
 Contabilidad honesta:
 
-* El trabajo por frame es clasificación más encolado SOLO: unas pocas
+- El trabajo por frame es clasificación más encolado SOLO: unas pocas
   comparaciones de enteros, actualizaciones de contadores y una escritura de
   ranura en un ring buffer preasignado. Sin asignación por frame, sin
   ordenamiento, sin construcción de strings.
-* Los percentiles ordenan una ventana acotada (default 10,000 muestras) solo
+- Los percentiles ordenan una ventana acotada (default 10,000 muestras) solo
   cuando ocurre una instantánea/exportación — nunca en la ruta del frame.
-* Los números absolutos varían según el dispositivo; no confíes en los
+- Los números absolutos varían según el dispositivo; no confíes en los
   benchmarks de nadie, incluidos estos docs. Ejecútalos tú mismo:
 
 ```bash
@@ -552,27 +552,27 @@ Dependencias: Flutter SDK y `args` (parsing de CLI). Nada más.
 
 ## Limitaciones
 
-* **FrameTiming no puede nombrar funciones culpables.** El motor ve duraciones
+- **FrameTiming no puede nombrar funciones culpables.** El motor ve duraciones
   por fase, no muestras de stack. `probableBottleneck` es una heurística sobre
   formas de tiempos; atribuir culpa a widgets específicos requiere trazado de
   Timeline (que PerfScope facilita, pero no falsifica).
-* **Los percentiles provienen de una ventana deslizante acotada**
+- **Los percentiles provienen de una ventana deslizante acotada**
   (`maxStatisticSamples`, default 10,000). Las sesiones largas describen su
   pasado reciente, no su historia completa; los contadores y sumas siguen
   siendo exactos en todo momento.
-* **Las rutas sin nombre reportan `'unknown'`.** Nombra tus rutas.
-* **El monitoreo de frames en web no está verificado.** El comportamiento de
+- **Las rutas sin nombre reportan `'unknown'`.** Nombra tus rutas.
+- **El monitoreo de frames en web no está verificado.** El comportamiento de
   `addTimingsCallback` en web no está documentado upstream; trata la columna
   web de arriba como desconocida, no como rota.
-* **Los ids de correlación son locales al proceso** — nunca los uses como
+- **Los ids de correlación son locales al proceso** — nunca los uses como
   claves de base de datos.
 
 ## Roadmap
 
-* **v0.2** — dirección de puente en runtime: exponer sesiones/streams en vivo
+- **v0.2** — dirección de puente en runtime: exponer sesiones/streams en vivo
   a herramientas externas (integración estilo MCP) para que agentes y
   dashboards puedan consultar PerfScope mientras la app se ejecuta.
-* Más adelante — métricas adicionales más allá de frames/traces: CPU, memoria,
+- Más adelante — métricas adicionales más allá de frames/traces: CPU, memoria,
   presión de GC, actividad de isolates. Cada una aterriza solo con un
   mecanismo de recolección honesto y documentado.
 

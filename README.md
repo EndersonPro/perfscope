@@ -20,12 +20,12 @@ DevTools answers "what happened in THIS tethered session?". PerfScope answers
 "how does my app behave during REAL usage, on real devices, over time?" —
 without a desktop connection:
 
-* **Always-on frame monitoring** via `SchedulerBinding.addTimingsCallback`,
+- **Always-on frame monitoring** via `SchedulerBinding.addTimingsCallback`,
   classified into severity tiers with a probable-bottleneck heuristic.
-* **Sessions** you control: auto-started, named, stopped, compared.
-* **Shareable artifacts**: deterministic JSON (schema v1), formatted text
+- **Sessions** you control: auto-started, named, stopped, compared.
+- **Shareable artifacts**: deterministic JSON (schema v1), formatted text
   reports, before/after comparison tables.
-* **AI-ready output**: a token-optimized context block you can paste straight
+- **AI-ready output**: a token-optimized context block you can paste straight
   into an LLM conversation to debug a jank regression.
 
 PerfScope observes; it never transmits. See [Privacy](#privacy).
@@ -161,9 +161,9 @@ Five anomaly types ship out of the box:
 
 Severity mapping (documented contract):
 
-* Frame anomalies: `slow` -> **high**, `severe` -> **critical**. Warning-tier
+- Frame anomalies: `slow` -> **high**, `severe` -> **critical**. Warning-tier
   frames never reach anomaly creation.
-* Long-trace anomalies scale with the configured threshold (default 50 ms):
+- Long-trace anomalies scale with the configured threshold (default 50 ms):
   >= 2x threshold -> **high**, >= 5x -> **critical**, otherwise **medium**.
 
 The bottleneck is a HEURISTIC derived solely from frame timing shapes. It
@@ -182,11 +182,11 @@ MaterialApp(
 )
 ```
 
-* Named routes become screen names; frames, anomalies, traces, and report
+- Named routes become screen names; frames, anomalies, traces, and report
   summaries attribute themselves to the visible screen.
-* Apps without a Navigator can override manually:
+- Apps without a Navigator can override manually:
   `PerfScope.screen('checkout');`.
-* Unnamed routes report `'unknown'`. Give important routes names.
+- Unnamed routes report `'unknown'`. Give important routes names.
 
 ## Interactions
 
@@ -247,10 +247,10 @@ final session = PerfScope.startSession('release-check'); // auto-finalizes any o
 final report = await PerfScope.stopSession(); // full PerformanceReport
 ```
 
-* Double-start is safe: opening a new session auto-finalizes the previous one
+- Double-start is safe: opening a new session auto-finalizes the previous one
   (its report stays reachable via its attached report).
-* Consecutive `stopSession()` calls throw — there is nothing open.
-* `PerfScope.currentSession` and `PerfScope.lastReport` answer passively;
+- Consecutive `stopSession()` calls throw — there is nothing open.
+- `PerfScope.currentSession` and `PerfScope.lastReport` answer passively;
   they never throw.
 
 ## Logs
@@ -346,9 +346,9 @@ expect(parsed.session.id, originalId); // in tests
 
 Destinations are host concerns; PerfScope ships three seams:
 
-* `CallbackExporter(onJson:)` — you decide where bytes go.
-* `InMemoryExporter` — buffers JSON strings for tests/debug screens.
-* `TextExporter` — human-readable summary box.
+- `CallbackExporter(onJson:)` — you decide where bytes go.
+- `InMemoryExporter` — buffers JSON strings for tests/debug screens.
+- `TextExporter` — human-readable summary box.
 
 ## AI Context
 
@@ -453,12 +453,12 @@ PerfScope collects NOTHING and transmits NOTHING. There is no network code in
 the package — not for telemetry, not for error reporting, not for "anonymous
 usage statistics". Explicitly, PerfScope never touches:
 
-* device identifiers or advertising IDs,
-* user identifiers or account data,
-* screen contents, text entered, or images rendered,
-* crash logs or stack traces of YOUR exceptions (only PerfScope's own traced
+- device identifiers or advertising IDs,
+- user identifiers or account data,
+- screen contents, text entered, or images rendered,
+- crash logs or stack traces of YOUR exceptions (only PerfScope's own traced
   failures are recorded, locally),
-* any analytics or telemetry pipeline.
+- any analytics or telemetry pipeline.
 
 Everything lives in bounded in-process memory until YOU export it through your
 own chosen channel. Correlation ids (`ses_1`, `anm_2`, `trc_3`) are local-only
@@ -468,12 +468,12 @@ sequence numbers — useful within one process, meaningless outside it.
 
 Honest accounting:
 
-* Per-frame work is classification plus enqueue ONLY: a few integer
+- Per-frame work is classification plus enqueue ONLY: a few integer
   comparisons, counter updates, and one slot write into a preallocated ring
   buffer. No allocation per frame, no sorting, no string building.
-* Percentiles sort a bounded window (default 10,000 samples) only when a
+- Percentiles sort a bounded window (default 10,000 samples) only when a
   snapshot/export happens — never on the frame path.
-* Absolute numbers vary by device; do not trust anyone else's benchmarks,
+- Absolute numbers vary by device; do not trust anyone else's benchmarks,
   including these docs. Run them yourself:
 
 ```bash
@@ -531,25 +531,25 @@ Dependencies: Flutter SDK and `args` (CLI parsing). Nothing else.
 
 ## Limitations
 
-* **FrameTiming cannot name guilty functions.** The engine sees per-phase
+- **FrameTiming cannot name guilty functions.** The engine sees per-phase
   durations, not stack samples. `probableBottleneck` is a heuristic over
   timing shapes; attributing blame to specific widgets requires timeline
   tracing (which PerfScope makes easy, but does not fake).
-* **Percentiles come from a bounded rolling window**
+- **Percentiles come from a bounded rolling window**
   (`maxStatisticSamples`, default 10,000). Long sessions describe their recent
   past, not their entire history; counters and sums stay exact throughout.
-* **Unnamed routes report `'unknown'`.** Name your routes.
-* **Web frame monitoring is unverified.** `addTimingsCallback` behavior on
+- **Unnamed routes report `'unknown'`.** Name your routes.
+- **Web frame monitoring is unverified.** `addTimingsCallback` behavior on
   web is undocumented upstream; treat the web column above as unknown rather
   than broken.
-* **Correlation ids are process-local** — never use them as database keys.
+- **Correlation ids are process-local** — never use them as database keys.
 
 ## Roadmap
 
-* **v0.2** — runtime bridge direction: expose live sessions/streams to
+- **v0.2** — runtime bridge direction: expose live sessions/streams to
   external tooling (MCP-style integration) so agents and dashboards can query
   PerfScope while the app runs.
-* Later — additional metrics beyond frames/traces: CPU, memory, GC pressure,
+- Later — additional metrics beyond frames/traces: CPU, memory, GC pressure,
   isolate activity. Each lands only with an honest, documented collection
   mechanism.
 

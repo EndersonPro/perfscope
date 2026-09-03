@@ -20,14 +20,14 @@ O DevTools responde "o que aconteceu NESTA sessão conectada?". O PerfScope
 responde "como meu app se comporta durante o uso REAL, em dispositivos reais,
 ao longo do tempo?" — sem conexão com um desktop:
 
-* **Monitoramento de frames sempre ativo** via
+- **Monitoramento de frames sempre ativo** via
   `SchedulerBinding.addTimingsCallback`, classificado em níveis de severidade
   com uma heurística de provável gargalo.
-* **Sessões** que você controla: auto-iniciadas, nomeadas, interrompidas,
+- **Sessões** que você controla: auto-iniciadas, nomeadas, interrompidas,
   comparadas.
-* **Artefatos compartilháveis**: JSON determinístico (schema v1), relatórios
+- **Artefatos compartilháveis**: JSON determinístico (schema v1), relatórios
   de texto formatado, tabelas de comparação antes/depois.
-* **Saída pronta para IA**: um bloco de contexto otimizado em tokens que você
+- **Saída pronta para IA**: um bloco de contexto otimizado em tokens que você
   pode colar diretamente em uma conversa com um LLM para depurar uma regressão
   de jank.
 
@@ -170,9 +170,9 @@ permanecem eventos. Cinco tipos de anomalia vêm prontos:
 
 Mapeamento de severidade (contrato documentado):
 
-* Anomalias de frame: `slow` -> **high**, `severe` -> **critical**. Frames de
+- Anomalias de frame: `slow` -> **high**, `severe` -> **critical**. Frames de
   nível warning nunca chegam à criação de anomalias.
-* Anomalias de trace longo escalam com o limiar configurado (padrão 50 ms):
+- Anomalias de trace longo escalam com o limiar configurado (padrão 50 ms):
   >= 2x limiar -> **high**, >= 5x -> **critical**, caso contrário **medium**.
 
 O gargalo é uma HEURÍSTICA derivada apenas das formas dos tempos de frame.
@@ -191,11 +191,11 @@ MaterialApp(
 )
 ```
 
-* Rotas nomeadas tornam-se nomes de tela; frames, anomalias, traces e resumos
+- Rotas nomeadas tornam-se nomes de tela; frames, anomalias, traces e resumos
   de relatório se atribuem à tela visível.
-* Apps sem Navigator podem sobrescrever manualmente:
+- Apps sem Navigator podem sobrescrever manualmente:
   `PerfScope.screen('checkout');`.
-* Rotas sem nome reportam `'unknown'`. Dê nomes às rotas importantes.
+- Rotas sem nome reportam `'unknown'`. Dê nomes às rotas importantes.
 
 ## Interações
 
@@ -259,10 +259,10 @@ final session = PerfScope.startSession('release-check'); // auto-finaliza qualqu
 final report = await PerfScope.stopSession(); // PerformanceReport completo
 ```
 
-* O início duplo é seguro: abrir uma nova sessão auto-finaliza a anterior
+- O início duplo é seguro: abrir uma nova sessão auto-finaliza a anterior
   (seu relatório permanece acessível via relatório anexado).
-* Chamadas consecutivas a `stopSession()` lançam — não há nada aberto.
-* `PerfScope.currentSession` e `PerfScope.lastReport` respondem passivamente;
+- Chamadas consecutivas a `stopSession()` lançam — não há nada aberto.
+- `PerfScope.currentSession` e `PerfScope.lastReport` respondem passivamente;
   nunca lançam.
 
 ## Logs
@@ -358,9 +358,9 @@ expect(parsed.session.id, originalId); // em testes
 
 Os destinos são preocupações do host; o PerfScope inclui três seams:
 
-* `CallbackExporter(onJson:)` — você decide para onde os bytes vão.
-* `InMemoryExporter` — armazena strings JSON para testes/telas de debug.
-* `TextExporter` — caixa de resumo legível por humanos.
+- `CallbackExporter(onJson:)` — você decide para onde os bytes vão.
+- `InMemoryExporter` — armazena strings JSON para testes/telas de debug.
+- `TextExporter` — caixa de resumo legível por humanos.
 
 ## Contexto de IA
 
@@ -465,12 +465,12 @@ O PerfScope NÃO coleta NADA e NÃO transmite NADA. Não há código de rede no
 pacote — nem telemetria, nem relatório de erros, nem "estatísticas de uso
 anônimas". Explicitamente, o PerfScope nunca toca:
 
-* identificadores de dispositivo ou IDs de publicidade,
-* identificadores de usuário ou dados de conta,
-* conteúdos de tela, texto digitado ou imagens renderizadas,
-* crash logs ou stack traces das SUAS exceções (apenas as falhas de traces do
+- identificadores de dispositivo ou IDs de publicidade,
+- identificadores de usuário ou dados de conta,
+- conteúdos de tela, texto digitado ou imagens renderizadas,
+- crash logs ou stack traces das SUAS exceções (apenas as falhas de traces do
   próprio PerfScope são registradas, localmente),
-* nenhuma pipeline de análise ou telemetria.
+- nenhuma pipeline de análise ou telemetria.
 
 Tudo vive em memória limitada dentro do processo até VOCÊ exportar pelo seu
 próprio canal escolhido. Os ids de correlação (`ses_1`, `anm_2`, `trc_3`) são
@@ -481,13 +481,13 @@ significado fora dele.
 
 Contabilidade honesta:
 
-* O trabalho por frame é classificação mais enfileiramento APENAS: algumas
+- O trabalho por frame é classificação mais enfileiramento APENAS: algumas
   comparações de inteiros, atualizações de contadores e uma escrita de posição
   em um ring buffer pré-alocado. Sem alocação por frame, sem ordenação, sem
   construção de strings.
-* Os percentis ordenam uma janela limitada (padrão 10.000 amostras) apenas
+- Os percentis ordenam uma janela limitada (padrão 10.000 amostras) apenas
   quando ocorre uma captura/exportação — nunca no caminho do frame.
-* Números absolutos variam por dispositivo; não confie nos benchmarks de
+- Números absolutos variam por dispositivo; não confie nos benchmarks de
   ninguém, incluindo estes docs. Execute você mesmo:
 
 ```bash
@@ -546,27 +546,27 @@ Dependências: Flutter SDK e `args` (parsing de CLI). Nada mais.
 
 ## Limitações
 
-* **FrameTiming não pode nomear funções culpadas.** O motor vê durações por
+- **FrameTiming não pode nomear funções culpadas.** O motor vê durações por
   fase, não amostras de stack. `probableBottleneck` é uma heurística sobre
   formas de tempos; atribuir culpa a widgets específicos requer tracing de
   Timeline (que o PerfScope facilita, mas não falsifica).
-* **Os percentis vêm de uma janela deslizante limitada**
+- **Os percentis vêm de uma janela deslizante limitada**
   (`maxStatisticSamples`, padrão 10.000). Sessões longas descrevem seu passado
   recente, não sua história completa; contadores e somas permanecem exatos o
   tempo todo.
-* **Rotas sem nome reportam `'unknown'`.** Dê nomes às suas rotas.
-* **O monitoramento de frames na web não é verificado.** O comportamento de
+- **Rotas sem nome reportam `'unknown'`.** Dê nomes às suas rotas.
+- **O monitoramento de frames na web não é verificado.** O comportamento de
   `addTimingsCallback` na web não é documentado upstream; trate a coluna web
   acima como desconhecida, não como quebrada.
-* **Os ids de correlação são locais ao processo** — nunca os use como chaves
+- **Os ids de correlação são locais ao processo** — nunca os use como chaves
   de banco de dados.
 
 ## Roadmap
 
-* **v0.2** — direção de ponte em runtime: expor sessões/streams ao vivo para
+- **v0.2** — direção de ponte em runtime: expor sessões/streams ao vivo para
   ferramentas externas (integração estilo MCP) para que agentes e dashboards
   possam consultar o PerfScope enquanto o app roda.
-* Mais tarde — métricas adicionais além de frames/traces: CPU, memória, pressão
+- Mais tarde — métricas adicionais além de frames/traces: CPU, memória, pressão
   de GC, atividade de isolates. Cada uma chega apenas com um mecanismo de
   coleta honesto e documentado.
 
