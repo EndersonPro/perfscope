@@ -1,93 +1,93 @@
 # Changelog
 
-Todos los cambios notables de este proyecto se documentan en este archivo.
+All notable changes to this project are documented in this file.
 
-El formato se basa en [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## 0.1.0 - 2026-09-03
 
-Observabilidad de rendimiento local para Flutter: detección de anomalías de
-frames en el dispositivo, sesiones, informes, comparaciones y contexto listo
-para IA. Sin nube, sin backend, sin dependencia de DevTools.
+Local performance observability for Flutter: on-device frame anomaly
+detection, sessions, reports, comparisons, and AI-ready context. No cloud,
+no backend, no DevTools dependency.
 
-### Motor core
+### Core engine
 
-- Monitoreo de frames mediante `SchedulerBinding.addTimingsCallback` con
-  clasificación O(1) por frame en niveles normal / warning / slow / severe
-  contra un presupuesto de frame configurable (default 60 Hz; resolución de
-  frecuencia de refresco con procedencia de fallback documentada).
-- Heurística de cuello de botella probable por frame slow (UI / raster / mixed
-  / unknown) derivada de las formas de tiempos build-vs-raster.
-- Contención de fallos: las excepciones dentro de PerfScope se enrutan al
-  escritor de logs y nunca se propagan a la aplicación host.
-- `Clock` inyectable, inicio de motor fire-and-forget, initialize idempotente,
-  dispose amigable con hot-restart.
+- Frame monitoring via `SchedulerBinding.addTimingsCallback` with
+  O(1) per-frame classification into normal / warning / slow / severe levels
+  against a configurable frame budget (default 60 Hz; refresh-rate resolution
+  with documented fallback provenance).
+- Likely-bottleneck heuristic per slow frame (UI / raster / mixed
+  / unknown) derived from build-vs-raster timing shapes.
+- Failure containment: exceptions inside PerfScope are routed to the
+  log writer and never propagate to the host app.
+- Injectable `Clock`, fire-and-forget engine start, idempotent initialize,
+  hot-restart-friendly dispose.
 
-### Anomalías
+### Anomalies
 
-- Cinco tipos de anomalía: `SlowFrameAnomaly`, `UiBoundFrameAnomaly`,
-  `RasterBoundFrameAnomaly`, `MixedFrameAnomaly` y `LongTraceAnomaly`.
-- Contrato de severidad: los frames slow mapean a high, los severe a critical;
-  los frames de nivel warning nunca se convierten en anomalías. Los traces
-  largos escalan a 2x/5x del umbral configurado (default 50 ms).
-- Ventanas de contexto de frames acotadas alrededor de cada anomalía de frame
+- Five anomaly types: `SlowFrameAnomaly`, `UiBoundFrameAnomaly`,
+  `RasterBoundFrameAnomaly`, `MixedFrameAnomaly` and `LongTraceAnomaly`.
+- Severity contract: slow frames map to high, severe ones to critical;
+  warning-level frames never become anomalies. Long traces
+  escalate at 2x/5x of the configured threshold (default 50 ms).
+- Bounded frame context windows around each frame anomaly
   (`contextFramesBefore` / `contextFramesAfter`).
 
-### Atribución de contexto
+### Context attribution
 
-- Seguimiento de pantallas mediante `PerfScopeNavigatorObserver` o
-  sobrescritura manual `PerfScope.screen()`; las rutas sin nombre se
-  normalizan a `'unknown'`.
-- Interacciones: marcadores rápidos de un solo uso más spans anidables con
-  enlace de id de padre y guarda de profundidad; cierres de span fuera de
-  orden soportados.
-- Store de metadatos validado con copia defensiva.
+- Screen tracking via `PerfScopeNavigatorObserver` or
+  manual `PerfScope.screen()` override; unnamed routes are
+  normalized to `'unknown'`.
+- Interactions: fast one-shot markers plus nestable spans with
+  parent id linking and depth guard; out-of-order span
+  closes supported.
+- Validated metadata store with defensive copy.
 
-### Trazado manual
+### Manual tracing
 
-- `PerfScope.trace` / `traceAsync` con semántica de fallo
-  registra-primero-relanza-sin-tocar e integración con Timeline (spans
-  síncronos mediante `Timeline.startSync`, asíncronos mediante `TimelineTask`),
-  ambos protegidos contra fallos de adaptador.
+- `PerfScope.trace` / `traceAsync` with record-first-rethrow-untouched
+  failure semantics and Timeline integration (sync spans
+  via `Timeline.startSync`, async ones via `TimelineTask`),
+  both guarded against adapter failures.
 
-### Sesiones, informes, comparaciones
+### Sessions, reports, comparisons
 
-- Sesiones auto-iniciadas o manuales; el doble inicio auto-finaliza la sesión
-  anterior; la detención explícita devuelve un `PerformanceReport` completo y
-  lo adjunta a la sesión finalizada para exportación posterior.
-- Estadísticas de sesión: contadores/sumas/peor frame exactos más percentiles
-  de rango más cercano sobre una ventana deslizante acotada
+- Auto-started or manual sessions; double start auto-finalizes the
+  previous session; explicit stop returns a complete `PerformanceReport` and
+  attaches it to the finished session for later export.
+- Session statistics: exact counters/sums/worst frame plus nearest-rank
+  percentiles over a bounded sliding window
   (`maxStatisticSamples`, default 10,000).
-- Resúmenes por pantalla y por interacción con clasificación determinista;
-  lista top-10 de peores anomalías.
-- `SessionComparator` puro antes/después con tablas de comparación
-  formateadas.
+- Per-screen and per-interaction summaries with deterministic ranking;
+  top-10 worst anomalies list.
+- Pure before/after `SessionComparator` with formatted comparison
+  tables.
 
-### Exportación y serialización
+### Export & serialization
 
-- Schema JSON determinista v1 con garantía de ida y vuelta del parser; las
-  exportaciones funcionan a mitad de sesión (instantánea mínima) y después de
-  detener (fallback al informe adjunto).
-- Seams de exportación: `CallbackExporter`, `InMemoryExporter`,
+- Deterministic v1 JSON schema with parser round-trip guarantee;
+  exports work mid-session (minimal snapshot) and after
+  stop (fallback to the attached report).
+- Export seams: `CallbackExporter`, `InMemoryExporter`,
   `TextExporter`.
 
 ### Logging
 
-- Cuatro estilos de salida (`silent`, `compact`, `pretty`, `json`/NDJSON) con
-  renderers deterministas cubiertos por snapshot tests; stream de eventos
-  crudos (`PerfScope.events`) y sinks inyectables junto al logging.
+- Four output styles (`silent`, `compact`, `pretty`, `json`/NDJSON) with
+  deterministic renderers covered by snapshot tests; raw event
+  stream (`PerfScope.events`) and injectable sinks alongside logging.
 
-### Integración IA
+### AI integration
 
-- Constructores de contexto IA optimizados en tokens (`buildAiContextText`,
-  `buildAiContextJson`) que omiten datos ausentes en lugar de inventarlos.
+- Token-optimized AI context builders (`buildAiContextText`,
+  `buildAiContextJson`) that omit missing data instead of inventing it.
 
-### Herramientas
+### Tooling
 
-- CLI offline (`dart run perfscope:perfscope`) con comandos `analyze`,
-  `report`, `compare`, `ai-context` y `doctor` y códigos de salida estables.
-- Suite de benchmarks bajo `benchmark/` cubriendo clasificación, rendimiento
-  de ring buffer, creación de anomalías, estadísticas y serialización.
-- App de demostración bajo `example/` demostrando la configuración estricta
-  solo-profile.
+- Offline CLI (`dart run perfscope:perfscope`) with `analyze`,
+  `report`, `compare`, `ai-context` and `doctor` commands and stable exit codes.
+- Benchmark suite under `benchmark/` covering classification,
+  ring buffer performance, anomaly creation, statistics, and serialization.
+- Demo app under `example/` demonstrating the strict
+  profile-only setup.
