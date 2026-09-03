@@ -1,5 +1,7 @@
 # PerfScope
 
+[![pub package](https://img.shields.io/pub/v/perfscope.svg)](https://pub.dev/packages/perfscope) [![pub points](https://img.shields.io/pub/points/perfscope.svg)](https://pub.dev/packages/perfscope/score) [![likes](https://img.shields.io/pub/likes/perfscope.svg)](https://pub.dev/packages/perfscope/score) [![CI](https://github.com/EndersonPro/perfscope/actions/workflows/ci.yml/badge.svg)](https://github.com/EndersonPro/perfscope/actions/workflows/ci.yml) [![codecov](https://codecov.io/gh/EndersonPro/perfscope/graph/badge.svg)](https://codecov.io/gh/EndersonPro/perfscope) [![License: MIT](https://img.shields.io/github/license/EndersonPro/perfscope.svg)](https://github.com/EndersonPro/perfscope/blob/main/LICENSE) [![Dart](https://img.shields.io/badge/dart-%5E3.5.0-blue.svg)] [![Flutter](https://img.shields.io/badge/flutter-%3E%3D3.24.0-blue.svg)]
+
 **Observabilidade de desempenho local para Flutter.**
 
 - Sem nuvem.
