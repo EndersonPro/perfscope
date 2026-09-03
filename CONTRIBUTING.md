@@ -1,47 +1,47 @@
-# Contribuyendo a PerfScope
+# Contributing to PerfScope
 
-Gracias por ayudar a mejorar PerfScope. Este documento cubre la configuración,
-los gates de calidad que cada cambio debe pasar y lo que los revisores esperan.
+Thank you for helping improve PerfScope. This document covers setup,
+the quality gates every change must pass, and what reviewers expect.
 
-## Configuración
+## Setup
 
-Requisitos:
+Requirements:
 
-* Flutter SDK (canal stable). El paquete apunta a `sdk: ^3.5.0` y
+* Flutter SDK (stable channel). The package targets `sdk: ^3.5.0` and
   `flutter: >=3.24.0`.
 
 ```bash
-git clone <tu-url-de-fork>
+git clone <your-fork-url>
 cd perfscope
 flutter pub get
 cd example && flutter pub get && cd ..
 ```
 
-## Comandos cotidianos
+## Everyday commands
 
 ```bash
-# Tests unitarios (la suite completa debe seguir en verde)
+# Unit tests (the full suite must stay green)
 flutter test
 
-# Formato (CI lo exige exactamente)
+# Formatting (CI enforces it exactly)
 dart format --output=none --set-exit-if-changed .
-dart format .            # aplicar correcciones localmente
+dart format .            # apply fixes locally
 
-# Análisis estático (cero issues es la barra)
+# Static analysis (zero issues is the bar)
 flutter analyze
 (cd example && flutter analyze)
 
-# Los docs de API deben compilar sin advertencias que tú introduzcas
+# API docs must build without warnings you introduce
 dart doc
 
-# Gate de publicabilidad (debe pasar; sin placeholders en pubspec)
+# Publishability gate (must pass; no placeholders in pubspec)
 dart pub publish --dry-run
 ```
 
 ### Benchmarks
 
-Los cambios sensibles al rendimiento deben venir con números antes/después de
-la suite de benchmarks:
+Performance-sensitive changes must come with before/after numbers from
+the benchmark suite:
 
 ```bash
 dart run benchmark/frame_classification_benchmark.dart
@@ -51,44 +51,39 @@ dart run benchmark/statistics_benchmark.dart
 dart run benchmark/serialization_benchmark.dart
 ```
 
-Los números son específicos de cada máquina — repórtalos como deltas
-relativos de tu propia máquina, nunca como afirmaciones absolutas para el
-README.
+Numbers are machine-specific — report them as relative deltas from your
+own machine, never as absolute claims for the README.
 
-## Expectativas de pull request
+## Pull request expectations
 
-* **Commits por unidad de trabajo.** Cada commit es una unidad revisable que
-  compila y pasa tests por sí sola. Los tests y la documentación viajan con el
-  código que cubren, no en un commit separado de "arreglar tests".
-* **Tests incluidos.** Cada cambio de comportamiento o arreglo de bug incluye
-  un test que falla sin él. Los arreglos de bugs fijan el bug primero.
-* **Docs actualizados.** Los cambios de API pública actualizan los snippets
-  del README y los comentarios de doc en el mismo PR. Las muestras de código
-  del README deben compilar contra firmas reales.
-* **Sin dependencias nuevas sin justificación.** El conjunto de dependencias
-  es deliberadamente mínimo (Flutter SDK + `args`). Cualquier dependencia
-  nueva necesita una justificación por escrito en la descripción del PR que
-  cubra por qué no se puede evitar y qué cuesta (tamaño, cadena de suministro,
-  alcance de plataformas).
-* **Issue primero.** Abre un issue (o comenta en uno existente) describiendo
-  el problema antes de refactors grandes o features nuevas. Los arreglos
-  pequeños y obvios pueden adelantarse — enlaza el issue de todas formas
-  cuando exista uno.
+* **One unit of work per commit.** Each commit is a reviewable unit that
+  builds and passes tests on its own. Tests and documentation travel with
+  the code they cover, not in a separate "fix tests" commit.
+* **Tests included.** Every behavior change or bug fix includes a test
+  that fails without it. Bug fixes pin the bug first.
+* **Docs updated.** Public API changes update the README snippets and doc
+  comments in the same PR. README code samples must compile against real
+  signatures.
+* **No new dependencies without justification.** The dependency set is
+  deliberately minimal (Flutter SDK + `args`). Any new dependency needs a
+  written justification in the PR description covering why it cannot be
+  avoided and what it costs (size, supply chain, platform scope).
+* **Issue first.** Open an issue (or comment on an existing one) describing
+  the problem before large refactors or new features. Small, obvious fixes
+  may go ahead — link the issue anyway when one exists.
 
-## Guía de alcance
+## Scope guide
 
-PerfScope es observabilidad solo-local. Los rechazos son casi seguros para:
+PerfScope is local-only observability. Rejection is almost certain for:
 
-* cualquier cosa que agregue acceso a red, telemetría o analítica,
-* features de sincronización en la nube (las apps host son dueñas del
-  transporte),
-* trabajo pesado por frame en la ruta caliente (clasificar + encolar solo),
-* métricas especulativas sin un mecanismo de recolección honesto y documentado.
+* anything adding network access, telemetry, or analytics,
+* cloud sync features (host apps own transport),
+* heavy per-frame work on the hot path (classify + enqueue only),
+* speculative metrics without an honest, documented collection mechanism.
 
-## Reportando bugs
+## Reporting bugs
 
-Incluye: versión de Flutter (`flutter --version`), plataforma, una
-reproducción mínima y — cuando sea relevante — un archivo JSON de sesión
-exportado. Sanea cualquier metadato que hayas adjuntado mediante
-`PerfScope.setMetadata`; los archivos de sesión contienen exactamente lo que
-tu app puso allí.
+Include: Flutter version (`flutter --version`), platform, a minimal
+reproduction and — when relevant — an exported session JSON file. Sanitize
+any metadata you attached via `PerfScope.setMetadata`; session files
+contain exactly what your app put there.
