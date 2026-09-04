@@ -440,6 +440,7 @@ Commands:
   compare <before> <after>     Before/after comparison table
   ai-context <session.json>    AI-ready context (for shell redirection)
   doctor                       Environment checks
+  mcp <run|install>            Ponte MCP ao vivo (primeiro serve, depois conectar)
 
 Exit codes:
   0 success   1 usage error   2 unreadable file
@@ -459,6 +460,99 @@ Recommended performance mode:
   flutter run --profile
 ```
 
+## Ponte ao vivo
+
+Visão ao vivo opt-in do app em execução para agentes e `curl` — somente
+loopback, com token e somente leitura. O app serve HTTP em `127.0.0.1`; uma
+ponte CLI expõe as mesmas visões como seis ferramentas MCP. Nada escuta se
+você não pedir.
+
+```dart
+// Somente entry de perfil (example/lib/main_profile.dart)
+import 'package:perfscope/perfscope_live.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  bootstrapPerfScope();
+  LivePerfScope.serve(); // imprime http://127.0.0.1:<port>/v1/status + uma linha de token
+  runApp(const MyApp());
+}
+```
+
+### Lendo porta e token
+
+Ao vincular, o app imprime exatamente duas linhas no console — a URL de
+status (com a porta atribuída) e o token Bearer — e publica
+`.dart_tool/perfscope-live.json` apenas com info de conexão (`port`, `token`
+completo somente-local, `pid`, raiz do projeto, timestamp; apagado ao
+fechar). Consulte qualquer rota com o token impresso:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:$PORT/v1/status
+curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:$PORT/v1/ai-context
+curl -N -H "Authorization: Bearer $TOKEN" http://127.0.0.1:$PORT/v1/events
+```
+
+O token é somente-local: vive nesses dois lugares (seu console, seu
+diretório do projeto) e não viaja para nenhum outro. O app de exemplo também
+mostra a URL da ponte com sua porta na tela de console de eventos ao vivo —
+o token nunca aparece na UI. Desligar: `LivePerfScope.serve(enabled: false)`
+ou `PERFSCOPE_LIVE=0`.
+
+### Pilotando a partir de um agente
+
+Instale o pacote globalmente com o Flutter — nunca `dart pub global
+activate`: o pacote depende do Flutter SDK, que a toolchain plana do Dart
+não resolve.
+
+```bash
+flutter pub global activate perfscope
+```
+
+`perfscope mcp run` é uma ponte JSON-RPC via stdio para o app em execução:
+lê `.dart_tool/perfscope-live.json` do projeto atual, apresenta seu token
+Bearer em cada chamada ao app e expõe seis tools (`perfscope_status`,
+`perfscope_session`, `perfscope_anomalies`, `perfscope_anomaly_context`,
+`perfscope_traces`, `perfscope_ai_context`) como repasses puros de suas
+gêmeas HTTP. `tools/list` responde mesmo sem servidor; `tools/call` falha por
+chamada até você servir.
+
+`perfscope mcp install [--agent <nome> | --all]` registra essa ponte nas
+suas configs de agentes, de forma aditiva (preserva entradas alheias) e
+idempotente (uma segunda execução nada muda):
+
+```bash
+perfscope mcp install --agent pi   # ou claude, codex, cursor, vscode, --all
+```
+
+| Agente | Valor de `--agent` | Arquivo de config (sob seu home) |
+|--------|--------------------|----------------------------------|
+| Claude | `claude` | `.claude.json` |
+| Codex | `codex` | `.codex/config.json` |
+| Pi | `pi` | `.pi/mcp.json` |
+| Cursor | `cursor` | `.cursor/mcp.json` |
+| VS Code | `vscode` | `.vscode/mcp.json` |
+
+Ressalva honesta v0.1: cada arquivo recebe o mesmo layout JSON uniforme (um
+mapa `mcpServers`). Corresponde à forma documentada de config MCP desses
+agentes hoje, mas esquemas nativos mudam — se seu agente rejeitar a entrada,
+aponte-o para `perfscope mcp run` manualmente. Cada instalação mescla este
+bloco:
+
+```json
+{
+  "mcpServers": {
+    "perfscope": {
+      "command": "perfscope",
+      "args": [
+        "mcp",
+        "run"
+      ]
+    }
+  }
+}
+```
+
 ## Privacidade
 
 O PerfScope NÃO coleta NADA e NÃO transmite NADA. Não há código de rede no
@@ -476,6 +570,14 @@ Tudo vive em memória limitada dentro do processo até VOCÊ exportar pelo seu
 próprio canal escolhido. Os ids de correlação (`ses_1`, `anm_2`, `trc_3`) são
 apenas números de sequência locais — úteis dentro de um processo, sem
 significado fora dele.
+
+Exceção loopback opt-in: a ponte ao vivo acima é a única superfície de rede
+do pacote. Escuta em `127.0.0.1` (somente loopback, nunca LAN), exige um
+token Bearer por processo em cada rota, serve snapshots GET somente leitura
+de dados que seu app já tem, e fecha ao liberar. O arquivo discovery
+`.dart_tool/perfscope-live.json` carrega o token completo mas continua
+somente-local (diretório do projeto do mesmo usuário, nunca commitado,
+apagado ao fechar).
 
 ## Sobrecarga de desempenho
 
@@ -563,9 +665,9 @@ Dependências: Flutter SDK e `args` (parsing de CLI). Nada mais.
 
 ## Roadmap
 
-- **v0.2** — direção de ponte em runtime: expor sessões/streams ao vivo para
-  ferramentas externas (integração estilo MCP) para que agentes e dashboards
-  possam consultar o PerfScope enquanto o app roda.
+- [x] **v0.2** — ponte loopback ao vivo: o app serve snapshots somente
+  leitura sobre `127.0.0.1` e o CLI os expõe como seis tools MCP (`mcp run` +
+  `mcp install`), para que agentes consultem o PerfScope com o app rodando.
 - Mais tarde — métricas adicionais além de frames/traces: CPU, memória, pressão
   de GC, atividade de isolates. Cada uma chega apenas com um mecanismo de
   coleta honesto e documentado.

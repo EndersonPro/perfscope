@@ -1,4 +1,5 @@
 import 'package:perfscope/perfscope.dart';
+import 'package:perfscope/perfscope_live.dart';
 
 /// PerfScope-only bootstrap module for the profile entry point.
 ///
@@ -18,6 +19,30 @@ import 'package:perfscope/perfscope.dart';
 /// every observed frame becomes an event and the showcase wants a generous
 /// inspection window on its diagnostics screens.
 final MemorySink showcaseMemorySink = MemorySink(capacity: 5000);
+
+/// Handle of the live-bridge server started by the profile entry point.
+///
+/// Assigned from the `serve()` future in `main_profile.dart` (serving
+/// handles only); null until the bind completes or when the bridge is
+/// disabled. The live event console reads it to render the bridge line; the
+/// token itself is never exposed to the UI.
+LiveServerHandle? liveBridgeHandle;
+
+/// Formats the one-line live-bridge status for the event console.
+///
+/// Pure over its input (falling back to [liveBridgeHandle], then to
+/// [LivePerfScope.current]): a serving handle renders its URL with the bound
+/// port, anything else renders `off`. The Bearer token never appears here —
+/// it lives in the console output and `.dart_tool/perfscope-live.json` only.
+String liveBridgeLine([LiveServerHandle? handle]) {
+  final LiveServerHandle? effective =
+      handle ?? liveBridgeHandle ?? LivePerfScope.current;
+  if (effective == null || !effective.isServing) {
+    return 'Live bridge: off';
+  }
+  return 'Live bridge: http://127.0.0.1:${effective.port}/v1/status · token '
+      'in console';
+}
 
 /// Initializes PerfScope and opens the named `'showcase'` session.
 ///

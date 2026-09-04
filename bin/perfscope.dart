@@ -7,8 +7,13 @@ library;
 
 import 'dart:io' show exit;
 
+import 'package:perfscope/src/cli/mcp/mcp_runner.dart' show runMcpCommand;
 import 'package:perfscope/src/cli/perfscope_cli.dart';
 
 Future<void> main(List<String> args) async {
-  exit(await runPerfScopeCli(args));
+  exit(await runPerfScopeCli(
+    args,
+    mcpRunner: (runnerArgs, out, err) =>
+        runMcpCommand(runnerArgs, out: out, err: err),
+  ));
 }

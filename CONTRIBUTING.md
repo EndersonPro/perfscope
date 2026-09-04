@@ -54,6 +54,33 @@ dart run benchmark/serialization_benchmark.dart
 Numbers are machine-specific — report them as relative deltas from your
 own machine, never as absolute claims for the README.
 
+### Live-bridge gates (Slice 4: `lib/src/live/` + `lib/src/cli/mcp/`)
+
+The live bridge is a dev-only, loopback-only surface with structural
+guarantees enforced by `test/live/import_ban_test.dart` and the
+`live-guards` CI job. Every change touching it must keep all of these
+green:
+
+```bash
+flutter test test/live/import_ban_test.dart test/live/discovery_test.dart \
+  test/live/mcp_bridge_test.dart test/live/mcp_install_test.dart
+```
+
+* **Release entry stays clean.** `example/lib/main.dart` and
+      `lib/perfscope.dart` import zero `src/live` symbols (release builds
+      show no size delta — the CI size guard greps this).
+* **CLI stays Flutter-free.** Nothing under `lib/src/cli/` or `bin/`
+      imports `package:flutter`, `src/live`, or `perfscope_live` (the `mcp
+      run` bridge is a separate OS process talking HTTP, never live memory).
+* **App never runs stdio.** No file under `lib/src/live/` touches
+      `stdin`; bridge stdout is JSON-RPC-only, diagnostics go to stderr.
+* **Discovery discipline.** `.dart_tool/perfscope-live.json` holds the
+      FULL token (local-only, same-user, never committed) plus connection
+      info only — no session payload. Written on bind, deleted on every
+      close path, never written when disabled.
+* **`mcp install` tests use fixtures only.** Never touch real user
+      configs in tests; installs are additive and idempotent.
+
 ## Pull request expectations
 
 * **One unit of work per commit.** Each commit is a reviewable unit that
