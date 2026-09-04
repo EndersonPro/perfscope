@@ -5,6 +5,23 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Live bridge (loopback + MCP)
+
+- Opt-in live server: `LivePerfScope.serve()` in a profile entrypoint serves
+  read-only snapshots over `127.0.0.1` (token-gated, auto-closing, SSE event
+  stream at `GET /v1/events`). Kill switch: `enabled: false` or
+  `PERFSCOPE_LIVE=0`.
+- Discovery file `.dart_tool/perfscope-live.json` (port, full local-only
+  token, pid, project root, timestamp; deleted on close).
+- Bridge CLI: `perfscope mcp run` exposes six tools (`perfscope_status`,
+  `perfscope_session`, `perfscope_anomalies`, `perfscope_anomaly_context`,
+  `perfscope_traces`, `perfscope_ai_context`) over stdio JSON-RPC;
+  `perfscope mcp install [--agent claude|codex|pi|cursor|vscode|--all]`
+  registers the bridge additively. Global install:
+  `flutter pub global activate perfscope`.
+
 ## 0.1.0 - 2026-09-03
 
 Local performance observability for Flutter: on-device frame anomaly

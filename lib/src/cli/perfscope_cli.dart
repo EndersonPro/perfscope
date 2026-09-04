@@ -65,6 +65,15 @@ final class CommandRunnerDependencies {
   final SystemProbe probe;
 }
 
+/// Runs the `mcp` subcommand. Kept `dart:io`-free: help text is answered
+/// inline, while `run`/`install` delegate to the injected [runner] (wired
+/// by `bin/perfscope.dart` to the real stdio/filesystem implementation).
+typedef McpCommandRunner = Future<int> Function(
+  List<String> args,
+  StringSink out,
+  StringSink err,
+);
+
 /// Runs the PerfScope CLI against [args], writing normal output to [out]
 /// and diagnostics to [err] (defaults come from the platform shim).
 ///
@@ -75,11 +84,24 @@ Future<int> runPerfScopeCli(
   StringSink? out,
   StringSink? err,
   CommandRunnerDependencies? deps,
+  McpCommandRunner? mcpRunner,
 }) async {
   final effectiveOut = out ?? cliStdout();
   final effectiveErr = err ?? cliStderr();
   final effectiveDeps =
       deps ?? CommandRunnerDependencies(loadFile: loadCliFile);
+
+  // `mcp` carries its own flags (`--agent`/`--all`) that the top-level
+  // parser (help-only) must not reject: route it before top-level
+  // parsing. `mcp --help` is answered by [_runMcp] itself.
+  if (args.isNotEmpty && args.first == 'mcp') {
+    return _runMcp(
+      args.sublist(1),
+      effectiveOut,
+      effectiveErr,
+      mcpRunner,
+    );
+  }
 
   final ArgResults parsedArgs;
   try {
@@ -134,6 +156,13 @@ Future<int> runPerfScopeCli(
       );
     case 'doctor':
       return _runDoctor(effectiveOut, effectiveDeps);
+    case 'mcp':
+      return _runMcp(
+        rest.sublist(1),
+        effectiveOut,
+        effectiveErr,
+        mcpRunner,
+      );
     default:
       effectiveErr
         ..writeln("Unknown command: '${rest.first}'.")
@@ -394,6 +423,38 @@ final class Version {
   String toString() => '$major.$minor.$patch';
 }
 
+Future<int> _runMcp(
+  List<String> args,
+  StringSink out,
+  StringSink err,
+  McpCommandRunner? runner,
+) async {
+  if (args.isEmpty || args.first == '--help' || args.first == '-h') {
+    out.write(_mcpUsageText());
+    return 0;
+  }
+  if (runner == null) {
+    err
+      ..writeln('The mcp command requires the VM runner.')
+      ..writeln(_usageHint);
+    return 1;
+  }
+  return runner(args, out, err);
+}
+
+String _mcpUsageText() => '''
+PerfScope MCP bridge (live loopback → agent tools).
+
+Usage: dart run perfscope:perfscope mcp <subcommand> [arguments]
+
+Subcommands:
+  run                          stdio JSON-RPC bridge (6 perfscope_* tools)
+  install [--agent <name>|--all]  register the bridge in agent configs
+
+Options:
+  -h, --help                   Show this help and exit
+''';
+
 Future<int> _runDoctor(StringSink out, CommandRunnerDependencies deps) async {
   var anyFailure = false;
 
@@ -503,6 +564,7 @@ Commands:
   compare <before> <after>     Before/after comparison table
   ai-context <session.json>    AI-ready context (for shell redirection)
   doctor                       Environment checks
+  mcp <run|install>            Live MCP bridge (serve first, then connect)
 
 Options:
   -h, --help                   Show this help and exit

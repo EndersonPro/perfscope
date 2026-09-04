@@ -153,3 +153,32 @@ lib/
 (`menu-tile<route>` keys) through a real engine with an injected `MemorySink`,
 asserting frame anomaly detection, session lifecycle, JSON round-trip parsing,
 and named-route screen attribution.
+
+## Agent loop (live bridge)
+
+`main_profile.dart` calls `LivePerfScope.serve()` after
+`bootstrapPerfScope()` and keeps the serving handle in `perf_bootstrap.dart`
+(`liveBridgeHandle`), so a profile run publishes
+`.dart_tool/perfscope-live.json` (port, token, pid, project root). From there
+the loop is serve, observe, fix, re-measure:
+
+```bash
+flutter run --profile -t lib/main_profile.dart  # prints $PORT and $TOKEN
+curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:$PORT/v1/status
+curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:$PORT/v1/ai-context
+```
+
+or through the MCP bridge (six tools, stdio JSON-RPC):
+
+```bash
+flutter pub global activate perfscope
+perfscope mcp install --agent pi   # claude, codex, cursor, vscode, --all
+perfscope mcp run                  # then call perfscope_ai_context, and friends
+```
+
+The live event console screen (`/sessions/live-event-console`) shows the
+bridge URL with its bound port (`Live bridge: off` when disabled; the token
+never appears in UI).
+
+Fix the flagged screen, re-run the scenario, and compare
+`perfscope_ai_context` output before and after.

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:perfscope/perfscope.dart';
+import 'package:perfscope/perfscope_live.dart';
 
 import 'app/showcase_app.dart';
 import 'perf_bootstrap.dart';
@@ -13,5 +14,8 @@ import 'perf_bootstrap.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   bootstrapPerfScope();
+  LivePerfScope.serve().then((LiveServerHandle handle) {
+    if (handle.isServing) liveBridgeHandle = handle;
+  });
   runShowcaseApp(observers: <NavigatorObserver>[PerfScopeNavigatorObserver()]);
 }

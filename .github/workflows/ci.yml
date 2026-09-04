@@ -44,3 +44,34 @@ jobs:
 
       - name: Publish dry run
         run: dart pub publish --dry-run
+
+  live-guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.1
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Live import-ban tests (Slice 4 graph guards)
+        run: >
+          flutter test test/live/import_ban_test.dart
+          test/live/discovery_test.dart test/live/mcp_bridge_test.dart
+          test/live/mcp_install_test.dart
+
+      - name: Import-ban grep (release entry + CLI purity)
+        run: |
+          test ! -e lib/src/live/mcp
+          ! grep -rn --include='*.dart' -E "^[[:space:]]*(import|export)[[:space:]]+['\"].*(package:flutter|src/live|perfscope_live)" lib/src/cli/ bin/ || exit 1
+          ! grep -rn --include='*.dart' -E "^[[:space:]]*(import|export)[[:space:]]+['\"].*(src/live|perfscope_live)" lib/perfscope.dart example/lib/main.dart || exit 1
+          ! grep -rn --include='*.dart' 'stdin' lib/src/live/ || exit 1
+
+      - name: Release size guard (release entry stays live-free)
+        run: |
+          test ! -e lib/src/live/mcp
+          ! grep -rn --include='*.dart' 'perfscope_live\|src/live' example/lib/main.dart lib/perfscope.dart || exit 1

@@ -280,7 +280,7 @@ void main() {
   });
 
   group('usage', () {
-    test('--help lists all five commands and exits 0', () async {
+    test('--help lists all six commands and exits 0', () async {
       final out = StringBuffer();
       final code =
           await runPerfScopeCli(['--help'], out: out, err: StringBuffer());
@@ -292,6 +292,7 @@ void main() {
         'compare',
         'ai-context',
         'doctor',
+        'mcp',
       ]) {
         expect(out.toString(), contains(command));
       }
@@ -316,6 +317,57 @@ void main() {
       expect(code, 1);
       expect(err.toString(), contains("Unknown command: 'frobnicate'"));
       expect(err.toString(), contains('--help'));
+    });
+  });
+
+  group('mcp dispatch (T12)', () {
+    test('mcp --help answers inline without a runner', () async {
+      final out = StringBuffer();
+      final code = await runPerfScopeCli(
+        ['mcp', '--help'],
+        out: out,
+        err: StringBuffer(),
+      );
+
+      expect(code, 0);
+      expect(out.toString(), contains('mcp'));
+      expect(out.toString(), contains('install'));
+    });
+
+    test('mcp run without a runner exits 1 (VM wiring required)', () async {
+      final err = StringBuffer();
+      final code = await runPerfScopeCli(
+        ['mcp', 'run'],
+        out: StringBuffer(),
+        err: err,
+      );
+
+      expect(code, 1);
+      expect(err.toString(), contains('VM runner'));
+    });
+
+    test('mcp delegates run/install to the injected runner', () async {
+      final seen = <List<String>>[];
+      Future<int> fakeRunner(
+          List<String> args, StringSink out, StringSink err) async {
+        seen.add(args);
+        out.writeln('fake-mcp');
+        return 0;
+      }
+
+      final out = StringBuffer();
+      final code = await runPerfScopeCli(
+        ['mcp', 'install', '--agent', 'pi'],
+        out: out,
+        err: StringBuffer(),
+        mcpRunner: fakeRunner,
+      );
+
+      expect(code, 0);
+      expect(seen, [
+        ['install', '--agent', 'pi']
+      ]);
+      expect(out.toString(), contains('fake-mcp'));
     });
   });
 }

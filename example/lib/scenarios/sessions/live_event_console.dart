@@ -79,10 +79,16 @@ PerfScope.events.listen((PerformanceEvent event) {
     debugPrint(event.anomaly.severity.name); // low..critical
   }
 });''',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          OutlinedButton(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text(
+                liveBridgeLine(),
+                key: const ValueKey<String>('live-bridge-line'),
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton(
             key: const ValueKey<String>('load-from-sink'),
             onPressed: _loadFromSink,
             child: const Text('Load snapshot from shared MemorySink'),
